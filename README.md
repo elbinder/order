@@ -3,7 +3,7 @@
 
 **"Makes life better"** — Tbilisi's first American pizza since 2009.
 
-This is the interactive prototype for Ronny's Pizza's direct-to-customer ordering experience. It's designed to replace Wolt/Glovo dependency with a zero-friction web experience that customers can use from any device, no app download required.
+This is the interactive prototype for Ronny's Pizza's direct-to-customer ordering experience. It's designed to replace Wolt dependency with a zero-friction web experience that customers can use from any device, no app download required.
 
 🔗 **Live preview:** [Deploy to Netlify to preview](#deployment)
 
