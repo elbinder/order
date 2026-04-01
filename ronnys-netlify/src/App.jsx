@@ -120,43 +120,48 @@ const pizzas = [
 const Lbl = ({ children }) => <p style={{ fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".07em", color: MID, marginBottom: 7 }}>{children}</p>;
 const Pill = ({ label, active, onClick }) => <button onClick={onClick} style={{ padding: "10px 16px", borderRadius: 20, border: active ? `1.5px solid ${RUST}` : `1.5px solid ${BORDER}`, background: active ? RL : "#fff", color: active ? RUST : MID, fontWeight: active ? 600 : 400, cursor: "pointer", fontSize: 14, fontFamily: "'DM Sans',sans-serif" }}>{label}</button>;
 
-// ─── Visual topping grid: flat, scannable, Sweetgreen-inspired ───
-// Role-based display groups for the grid
+// ─── Sweetgreen-style topping selector: flowing pills with photos ───
 const displayGroups = [
-  { label: "🧀 Cheese", filter: (t) => t.g === "Cheeses" },
-  { label: "🥩 Meats", filter: (t) => t.g === "Proteins" },
-  { label: "🥬 Veggies & More", filter: (t) => t.g === "Vegetables" || t.g === "Fruits & Extras" },
-  { label: "🌶️ Heat", filter: (t) => t.g === "Heat" },
-  { label: "✨ Free", filter: (t) => t.g === "Free Add-ons" },
+  { label: "Cheese", emoji: "🧀", filter: (t) => t.g === "Cheeses" },
+  { label: "Meats", emoji: "🥩", filter: (t) => t.g === "Proteins" },
+  { label: "Veggies & More", emoji: "🥬", filter: (t) => t.g === "Vegetables" || t.g === "Fruits & Extras" },
+  { label: "Heat", emoji: "🌶️", filter: (t) => t.g === "Heat" },
+  { label: "Free", emoji: "✨", filter: (t) => t.g === "Free Add-ons" },
 ];
 
 function ToppingGrid({ tqty, setOneTQ, si = 1 }) {
   const active = Object.entries(tqty).filter(([, q]) => q > 0);
   return (
     <div>
-      {active.length > 0 && <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>{active.map(([n, q]) => <span key={n} onClick={() => setOneTQ(n, 0)} style={{ fontSize: 12, background: RL, color: RUST, borderRadius: 12, padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3, fontWeight: 500 }}>{q === 2 ? `2x ${n}` : n} <span style={{ opacity: 0.5 }}>×</span></span>)}</div>}
-      {displayGroups.map(({ label, filter }) => {
+      {active.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+          {active.map(([n, q]) => (
+            <span key={n} onClick={() => setOneTQ(n, 0)} style={{ fontSize: 13, background: RL, color: RUST, borderRadius: 20, padding: "6px 14px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, fontWeight: 500, border: `1.5px solid ${RUST}` }}>
+              {q === 2 ? `2× ${n}` : n} <span style={{ opacity: 0.5, fontSize: 15 }}>×</span>
+            </span>
+          ))}
+        </div>
+      )}
+      {displayGroups.map(({ label, emoji, filter }) => {
         const items = toppingLib.filter(filter);
         if (items.length === 0) return null;
         return (
-          <div key={label}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: MID, margin: "12px 0 6px", letterSpacing: ".03em" }}>{label}</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+          <div key={label} style={{ marginBottom: 18 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: MID, margin: "0 0 8px", display: "flex", alignItems: "center", gap: 5 }}><span>{emoji}</span> {label}</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {items.map((t) => {
                 const q = tqty[t.n] || 0;
                 const price = t.ps[si];
                 const isFree = price === 0;
                 const cycle = () => setOneTQ(t.n, (q + 1) % 3);
                 return (
-                  <div key={t.n} onClick={cycle} style={{ position: "relative", borderRadius: 10, border: q > 0 ? `2px solid ${RUST}` : `1px solid ${BORDER}`, background: q > 0 ? RL : "#fff", cursor: "pointer", overflow: "hidden", transition: "all .12s" }}>
-                    <div style={{ width: "100%", height: 56, background: WARM, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <img src={t.i} alt={t.n} style={{ width: 48, height: 48, borderRadius: 6, objectFit: "cover" }} />
+                  <div key={t.n} onClick={cycle} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", borderRadius: 28, border: q > 0 ? `2px solid ${RUST}` : `1.5px solid ${BORDER}`, background: q > 0 ? RL : "#fff", cursor: "pointer", transition: "all .15s", minHeight: 44 }}>
+                    <img src={t.i} alt={t.n} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: q > 0 ? 600 : 500, color: q > 0 ? RUST : DARK, lineHeight: 1.2, whiteSpace: "nowrap" }}>{q === 2 ? `2× ${t.n}` : t.n}</p>
+                      <p style={{ fontSize: 11, color: isFree ? GN : MID, fontWeight: isFree ? 600 : 400, lineHeight: 1.2 }}>{isFree ? "FREE" : `+${price.toFixed(2)} ₾`}</p>
                     </div>
-                    {q > 0 && <div style={{ position: "absolute", top: 4, right: 4, background: RUST, color: "#fff", borderRadius: 10, padding: "1px 6px", fontSize: 11, fontWeight: 700 }}>{q === 2 ? "2x" : "✓"}</div>}
-                    <div style={{ padding: "5px 6px 7px", textAlign: "center" }}>
-                      <p style={{ fontSize: 11, fontWeight: q > 0 ? 600 : 500, color: q > 0 ? RUST : DARK, lineHeight: 1.2, marginBottom: 2 }}>{t.n}</p>
-                      <p style={{ fontSize: 11, color: isFree ? GN : MID, fontWeight: isFree ? 600 : 400 }}>{isFree ? "FREE" : `${price.toFixed(2)} ₾`}</p>
-                    </div>
+                    {q > 0 && <div style={{ width: 18, height: 18, borderRadius: "50%", background: RUST, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 2 }}><span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>{q === 2 ? "2" : "✓"}</span></div>}
                   </div>
                 );
               })}
@@ -179,7 +184,7 @@ function IngTags({ ings, removed, setRemoved }) {
   );
 }
 
-// ─── Regular Builder ───
+// ─── Regular Builder — Sweetgreen-inspired: hero image, flowing sections, micro-copy ───
 function Builder({ pizza, editItem, onClose, onSave }) {
   const e = editItem;
   const [si, setSi] = useState(e?.si ?? 1);
@@ -197,44 +202,91 @@ function Builder({ pizza, editItem, onClose, onSave }) {
   const unit = base - rmCost + topCost(tqty, si);
   const total = unit * qty;
   const isHouse = pizza.tier === "house";
-  useEffect(() => { const el = ref.current; if (!el) return; const h = () => setScrolled(el.scrollTop > 100); el.addEventListener("scroll", h); return () => el.removeEventListener("scroll", h); }, []);
+  const addedCount = Object.values(tqty).filter((q) => q > 0).length;
+  const removedCount = Object.values(removed).filter(Boolean).length;
+  useEffect(() => { const el = ref.current; if (!el) return; const h = () => setScrolled(el.scrollTop > 180); el.addEventListener("scroll", h); return () => el.removeEventListener("scroll", h); }, []);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(42,31,20,.6)", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
       <div onClick={onClose} style={{ flex: 1 }} />
       <div style={{ background: CREAM, borderRadius: "20px 20px 0 0", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 4px" }}><div style={{ width: 36, height: 4, borderRadius: 2, background: BORDER }} /></div>
-        {scrolled && <div style={{ padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${BORDER}`, background: CREAM }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><img src={pizza.img} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} /><span style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 500, color: DARK }}>{pizza.name}</span>{isEdit && <span style={{ fontSize: 11, background: WARM, color: MID, borderRadius: 6, padding: "2px 6px" }}>Editing</span>}</div><span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, color: RUST, fontWeight: 500 }}>{unit.toFixed(2)} ₾</span></div>}
+        {/* Drag handle */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0" }}><div style={{ width: 36, height: 4, borderRadius: 2, background: BORDER }} /></div>
+        
+        {/* Sticky header — appears when scrolled past hero */}
+        {scrolled && <div style={{ padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${BORDER}`, background: CREAM, zIndex: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <img src={pizza.img} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
+            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 500, color: DARK }}>{pizza.name}</span>
+          </div>
+          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, color: RUST, fontWeight: 500 }}>{unit.toFixed(2)} ₾</span>
+        </div>}
+
         <div ref={ref} style={{ flex: 1, overflowY: "auto" }}>
-          <div style={{ padding: "0 20px 20px" }}>
-            <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 12 }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", flexShrink: 0, border: `2px dashed ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}><img src={pizza.img} alt="" style={{ width: 70, height: 70, borderRadius: "50%", objectFit: "cover" }} /></div>
-              <div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><p style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 500, color: DARK }}>{pizza.name}</p>{isEdit && <span style={{ fontSize: 11, background: WARM, color: MID, borderRadius: 6, padding: "2px 6px" }}>Editing</span>}</div><p style={{ fontSize: 13, color: MID, marginTop: 3 }}>{pizza.tagline}</p></div>
+          {/* Hero — full-width pizza image */}
+          <div style={{ width: "100%", height: 180, background: WARM, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            <img src={pizza.img} alt={pizza.name} style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", border: `3px solid #fff`, boxShadow: "0 8px 32px rgba(42,31,20,.15)" }} />
+            {pizza.badge && <span style={{ position: "absolute", top: 12, left: 16, background: pizza.badge === "Staff pick" ? "#6B5CE7" : GN, color: "#fff", fontSize: 12, fontWeight: 600, borderRadius: 12, padding: "4px 10px" }}>{pizza.badge}</span>}
+            {isEdit && <span style={{ position: "absolute", top: 12, right: 16, fontSize: 12, background: WARM, color: MID, borderRadius: 8, padding: "4px 10px", fontWeight: 500 }}>Editing</span>}
+          </div>
+
+          <div style={{ padding: "16px 20px 20px" }}>
+            {/* Name + tagline + price */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
+                <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 500, color: DARK, lineHeight: 1.2 }}>{pizza.name}</p>
+                <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, color: RUST, fontWeight: 500, flexShrink: 0, marginLeft: 12 }}>{unit.toFixed(2)} ₾</span>
+              </div>
+              <p style={{ fontSize: 14, color: MID, lineHeight: 1.5 }}>{pizza.tagline}</p>
+              {isHouse && <p style={{ fontSize: 12, color: "#6B5CE7", fontWeight: 500, marginTop: 6 }}>House Special — fixed price, customize freely</p>}
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
-              <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, color: RUST, fontWeight: 500 }}>{unit.toFixed(2)} ₾</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                {isHouse && <span style={{ fontSize: 11, color: "#fff", background: "#6B5CE7", borderRadius: 6, padding: "2px 6px", fontWeight: 600 }}>House Special</span>}
-                <span style={{ fontSize: 12, color: MID, background: WARM, borderRadius: 6, padding: "3px 8px" }}>{pizza.sizes[si].l}</span>
+
+            {/* Size · Crust · Sauce — compact row */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: MID, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>Size</p>
+                <div style={{ display: "flex", gap: 4 }}>{pizza.sizes.map((s, i) => <Pill key={i} label={s.l} active={si === i} onClick={() => setSi(i)} />)}</div>
               </div>
             </div>
-            <Lbl>{isHouse ? "Included · no price reduction when removed" : "Included · price adjusts when removed"}</Lbl>
-            <IngTags ings={pizza.ings} removed={removed} setRemoved={setRemoved} />
-            <Lbl>Size</Lbl><div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>{pizza.sizes.map((s, i) => <Pill key={i} label={s.l} active={si === i} onClick={() => setSi(i)} />)}</div>
-            <Lbl>Crust</Lbl><div style={{ display: "flex", gap: 6, marginBottom: 14 }}>{["Original", "Thin"].map((c) => <Pill key={c} label={c} active={crust === c} onClick={() => setCrust(c)} />)}</div>
-            <Lbl>Sauce</Lbl><div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>{["Original", "Less", "Extra", "None"].map((s) => <Pill key={s} label={s} active={sauce === s} onClick={() => setSauce(s)} />)}</div>
-            <Lbl>Add toppings · tap once to add, twice for 2x</Lbl>
-            <ToppingGrid tqty={tqty} setOneTQ={setOneTQ} si={si} />
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: MID, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>Crust</p>
+                <div style={{ display: "flex", gap: 4 }}>{["Original", "Thin"].map((c) => <Pill key={c} label={c} active={crust === c} onClick={() => setCrust(c)} />)}</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: MID, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>Sauce</p>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{["Original", "Less", "Extra", "None"].map((s) => <Pill key={s} label={s} active={sauce === s} onClick={() => setSauce(s)} />)}</div>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: BORDER, marginBottom: 20 }} />
+
+            {/* What's included — ingredient pills */}
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: DARK, marginBottom: 4 }}>What's on it</p>
+              <p style={{ fontSize: 12, color: MID, marginBottom: 8 }}>{isHouse ? "Tap to remove (price stays the same)" : "Tap to remove (price adjusts)"}</p>
+              <IngTags ings={pizza.ings} removed={removed} setRemoved={setRemoved} />
+            </div>
+
+            {/* Add toppings section */}
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: DARK, marginBottom: 4 }}>Make it yours</p>
+              <p style={{ fontSize: 12, color: MID, marginBottom: 10 }}>Tap to add · tap again for double</p>
+              <ToppingGrid tqty={tqty} setOneTQ={setOneTQ} si={si} />
+            </div>
           </div>
         </div>
+
+        {/* Bottom bar — quantity + add to cart */}
         <div style={{ padding: "12px 20px 16px", borderTop: `1px solid ${BORDER}`, background: "#fff", display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, border: `1px solid ${BORDER}`, borderRadius: 24, padding: "4px 8px" }}>
-            <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: WARM, cursor: "pointer", fontSize: 15, color: DARK, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-            <span style={{ fontSize: 15, fontWeight: 600, minWidth: 18, textAlign: "center", color: DARK }}>{qty}</span>
-            <button onClick={() => setQty(qty + 1)} style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: WARM, cursor: "pointer", fontSize: 15, color: DARK, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+            <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: 30, height: 30, borderRadius: "50%", border: "none", background: WARM, cursor: "pointer", fontSize: 16, color: DARK, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+            <span style={{ fontSize: 16, fontWeight: 600, minWidth: 20, textAlign: "center", color: DARK }}>{qty}</span>
+            <button onClick={() => setQty(qty + 1)} style={{ width: 30, height: 30, borderRadius: "50%", border: "none", background: WARM, cursor: "pointer", fontSize: 16, color: DARK, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
           </div>
-          <button onClick={() => onSave({ pizza, si, crust, sauce, removed, tqty, qty, total, unit })} style={{ flex: 1, padding: "13px 20px", borderRadius: 24, border: "none", background: RUST, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {isEdit ? "Update cart" : "Add to cart"} <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, borderLeft: "1px solid rgba(255,255,255,.3)", paddingLeft: 8 }}>{total.toFixed(2)} ₾</span>
+          <button onClick={() => onSave({ pizza, si, crust, sauce, removed, tqty, qty, total, unit })} style={{ flex: 1, padding: "14px 20px", borderRadius: 24, border: "none", background: RUST, color: "#fff", fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {isEdit ? "Update" : "Add to cart"} <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, borderLeft: "1px solid rgba(255,255,255,.3)", paddingLeft: 10 }}>{total.toFixed(2)} ₾</span>
           </button>
         </div>
       </div>
@@ -527,33 +579,60 @@ function CartItem({ item, idx, onEdit, onRemove }) {
 
 function PizzaCard({ pizza, onClick }) {
   const bc = pizza.badge === "Most ordered" ? GN : pizza.badge === "Staff pick" ? "#6B5CE7" : pizza.badge === "Vegan" ? GN : pizza.badge === "Vegetarian" ? GN : null;
-  return <div onClick={onClick} style={{ background: "#fff", borderRadius: 14, overflow: "hidden", cursor: "pointer", border: `1px solid ${BORDER}` }}><div style={{ background: WARM, height: 110, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}><img src={pizza.img} alt={pizza.name} style={{ width: 85, height: 85, borderRadius: "50%", objectFit: "cover" }} />{pizza.badge && <span style={{ position: "absolute", top: 6, left: 6, background: bc, color: "#fff", fontSize: 11, fontWeight: 600, borderRadius: 10, padding: "2px 8px" }}>{pizza.badge}</span>}</div><div style={{ padding: "8px 12px 12px" }}><p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 500, color: DARK, marginBottom: 2 }}>{pizza.name}</p><p style={{ fontSize: 12, color: MID, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", lineHeight: 1.4 }}>{pizza.tagline}</p><p style={{ fontSize: 14, color: RUST, fontWeight: 600 }}>From {pizza.sizes[0].p.toFixed(2)} ₾</p></div></div>;
+  const ingPreview = pizza.ings.slice(0, 3).join(" · ");
+  return (
+    <div onClick={onClick} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", cursor: "pointer", border: `1px solid ${BORDER}`, WebkitTapHighlightColor: "transparent" }}>
+      <div style={{ background: WARM, height: 120, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <img src={pizza.img} alt={pizza.name} style={{ width: 100, height: 100, borderRadius: "50%", objectFit: "cover" }} />
+        {pizza.badge && <span style={{ position: "absolute", top: 8, left: 8, background: bc, color: "#fff", fontSize: 11, fontWeight: 600, borderRadius: 10, padding: "3px 9px" }}>{pizza.badge}</span>}
+      </div>
+      <div style={{ padding: "10px 12px 14px" }}>
+        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 500, color: DARK, marginBottom: 3 }}>{pizza.name}</p>
+        <p style={{ fontSize: 12, color: MID, lineHeight: 1.35, marginBottom: 6 }}>{ingPreview}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <p style={{ fontSize: 14, color: RUST, fontWeight: 600 }}>{pizza.sizes[0].p.toFixed(0)} ₾</p>
+          <span style={{ fontSize: 13, color: RUST, fontWeight: 500 }}>Customize →</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// ─── Address Gate ───
+// ─── Address Gate — Sweetgreen-inspired ───
 function AddressGate({ onConfirm }) {
   const [q, setQ] = useState(""); const [focused, setFocused] = useState(false); const [picked, setPicked] = useState(null); const [showAll, setShowAll] = useState(false);
   const matches = q.trim().length > 0 ? allAreas.filter((a) => a.toLowerCase().includes(q.toLowerCase())) : [];
   const pickArea = (area) => { setQ(area); setPicked({ area, loc: findLoc(area) }); setFocused(false); };
   return (
-    <div style={{ minHeight: "100vh", background: CREAM, display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: 16, display: "flex", alignItems: "center", gap: 10 }}><div style={{ width: 34, height: 34, background: RUST, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "#fff", fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 600 }}>R</span></div><span style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 500, color: DARK }}>Ronny's</span></div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 20px 60px", maxWidth: 440, margin: "0 auto", width: "100%" }}>
-        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 500, color: DARK, lineHeight: 1.25, marginBottom: 6 }}>Pizza that makes<br />life better.</p>
-        <p style={{ fontSize: 14, color: MID, lineHeight: 1.6, marginBottom: 24 }}>Free delivery from 5 locations across Tbilisi.<br />Enter your area to find your nearest Ronny's.</p>
-        <div style={{ position: "relative", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderRadius: 14, border: focused ? `2px solid ${RUST}` : `2px solid ${BORDER}`, background: "#fff" }}>
-            <span style={{ fontSize: 18 }}>📍</span>
-            <input type="text" placeholder="Type your area — e.g. Vake, Saburtalo..." value={q} onChange={(e) => { setQ(e.target.value); setPicked(null); }} onFocus={() => setFocused(true)} onBlur={() => setTimeout(() => setFocused(false), 200)} style={{ flex: 1, border: "none", outline: "none", fontSize: 15, fontFamily: "'DM Sans',sans-serif", color: DARK, background: "transparent" }} />
-            {q && <button onClick={() => { setQ(""); setPicked(null); }} style={{ background: "none", border: "none", color: MID, fontSize: 18, cursor: "pointer" }}>×</button>}
+    <div style={{ minHeight: "100vh", background: "#fff", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${BORDER}` }}><div style={{ width: 34, height: 34, background: RUST, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "#fff", fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 600 }}>R</span></div><span style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 500, color: DARK }}>Ronny's</span></div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px 60px", maxWidth: 440, margin: "0 auto", width: "100%" }}>
+        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontWeight: 500, color: DARK, lineHeight: 1.2, marginBottom: 8 }}>Pizza that makes<br />life better.</p>
+        <p style={{ fontSize: 15, color: MID, lineHeight: 1.6, marginBottom: 28 }}>Free delivery from 5 locations across Tbilisi.</p>
+        
+        {/* Search input */}
+        <div style={{ position: "relative", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderRadius: 12, border: focused ? `2px solid ${RUST}` : `2px solid ${BORDER}`, background: "#fff", transition: "border .15s" }}>
+            <span style={{ fontSize: 16, color: MID }}>📍</span>
+            <input type="text" placeholder="Type your neighborhood" value={q} onChange={(e) => { setQ(e.target.value); setPicked(null); }} onFocus={() => setFocused(true)} onBlur={() => setTimeout(() => setFocused(false), 200)} style={{ flex: 1, border: "none", outline: "none", fontSize: 15, fontFamily: "'DM Sans',sans-serif", color: DARK, background: "transparent" }} />
+            {q && <button onClick={() => { setQ(""); setPicked(null); }} style={{ background: "none", border: "none", color: MID, fontSize: 18, cursor: "pointer", padding: 0 }}>×</button>}
           </div>
-          {focused && matches.length > 0 && !picked && <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(42,31,20,.12)", zIndex: 10 }}>{matches.slice(0, 5).map((a) => { const loc = findLoc(a); return <button key={a} onMouseDown={() => pickArea(a)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", border: "none", borderBottom: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", textAlign: "left" }}><div><p style={{ fontSize: 14, color: DARK, fontWeight: 500 }}>{a}</p><p style={{ fontSize: 13, color: MID }}>Nearest: Ronny's {loc.name}</p></div><span style={{ fontSize: 13, color: GN, fontWeight: 500 }}>~30 min</span></button>; })}</div>}
+          {focused && matches.length > 0 && !picked && <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(42,31,20,.12)", zIndex: 10 }}>{matches.slice(0, 5).map((a) => { const loc = findLoc(a); return <button key={a} onMouseDown={() => pickArea(a)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", border: "none", borderBottom: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", textAlign: "left" }}><div><p style={{ fontSize: 14, color: DARK, fontWeight: 500 }}>{a}</p><p style={{ fontSize: 13, color: MID }}>Ronny's {loc.name} · {loc.address}</p></div><span style={{ fontSize: 13, color: GN, fontWeight: 500 }}>~30 min</span></button>; })}</div>}
         </div>
-        {picked && <div style={{ background: GNL, border: `1.5px solid ${GN}`, borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}><div style={{ width: 20, height: 20, borderRadius: "50%", background: GN, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}>✓</span></div><p style={{ fontSize: 14, fontWeight: 600, color: GN }}>We deliver to {picked.area}!</p></div><div style={{ background: "#fff", borderRadius: 10, padding: "10px 12px", border: `1px solid ${BORDER}` }}><p style={{ fontSize: 13, fontWeight: 500, color: DARK }}>Your nearest Ronny's</p><p style={{ fontSize: 13, color: MID, marginTop: 2 }}>{picked.loc.name} — {picked.loc.address}</p><p style={{ fontSize: 12, color: GN, marginTop: 2 }}>Estimated delivery: ~30–40 min</p></div></div>}
-        {picked && <button onClick={() => onConfirm(picked)} style={{ width: "100%", padding: 16, borderRadius: 24, border: "none", background: RUST, color: "#fff", fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 12 }}>See the menu</button>}
-        <button onClick={() => setShowAll(!showAll)} style={{ background: "none", border: "none", color: RUST, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", padding: "8px 0", display: "flex", alignItems: "center", gap: 4, justifyContent: "center" }}>{showAll ? "Hide locations" : "Or choose a location directly"} <span style={{ display: "inline-block", transition: "transform .2s", transform: showAll ? "rotate(180deg)" : "rotate(0)" }}>⌄</span></button>
-        {showAll && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>{locations.map((loc) => <button key={loc.id} onClick={() => { setPicked({ area: loc.areas[0], loc }); setQ(loc.areas[0]); setShowAll(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, border: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", textAlign: "left" }}><div style={{ width: 40, height: 40, borderRadius: 10, background: WARM, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: RUST }}>R</span></div><div style={{ flex: 1 }}><p style={{ fontSize: 14, fontWeight: 500, color: DARK }}>Ronny's {loc.name}</p><p style={{ fontSize: 12, color: MID }}>{loc.address}</p></div><span style={{ fontSize: 13, color: GN, fontWeight: 500 }}>~30 min</span></button>)}</div>}
-        <div style={{ marginTop: 32, textAlign: "center" }}><p style={{ fontSize: 12, color: MID }}>Tbilisi's first American pizza since 2009</p><p style={{ fontSize: 12, color: MID }}>032 2 472 472 · 5 locations · 11:00–23:00</p></div>
+
+        {/* Pin your location hint */}
+        {!picked && <p style={{ fontSize: 13, color: MID, textAlign: "center", marginBottom: 16 }}>or <span style={{ color: RUST, fontWeight: 500, cursor: "pointer" }} onClick={() => setShowAll(true)}>📌 pin your location on the map</span></p>}
+
+        {/* Confirmed area */}
+        {picked && <div style={{ background: GNL, border: `1.5px solid ${GN}`, borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}><div style={{ width: 20, height: 20, borderRadius: "50%", background: GN, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}>✓</span></div><p style={{ fontSize: 14, fontWeight: 600, color: GN }}>We deliver to {picked.area}!</p></div><div style={{ background: "#fff", borderRadius: 10, padding: "10px 12px", border: `1px solid ${BORDER}` }}><p style={{ fontSize: 14, fontWeight: 500, color: DARK }}>Ronny's {picked.loc.name}</p><p style={{ fontSize: 13, color: MID, marginTop: 2 }}>{picked.loc.address} · ~30–40 min</p></div></div>}
+        
+        {picked && <button onClick={() => onConfirm(picked)} style={{ width: "100%", padding: 16, borderRadius: 28, border: "none", background: RUST, color: "#fff", fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 12 }}>See the menu →</button>}
+        
+        {/* Location list */}
+        <button onClick={() => setShowAll(!showAll)} style={{ background: "none", border: "none", color: MID, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", padding: "8px 0", display: "flex", alignItems: "center", gap: 4, justifyContent: "center" }}>{showAll ? "Hide locations" : "Browse all 5 locations"} <span style={{ display: "inline-block", transition: "transform .2s", transform: showAll ? "rotate(180deg)" : "rotate(0)" }}>⌄</span></button>
+        {showAll && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>{locations.map((loc) => <button key={loc.id} onClick={() => { setPicked({ area: loc.areas[0], loc }); setQ(loc.areas[0]); setShowAll(false); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, border: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", textAlign: "left" }}><div style={{ width: 40, height: 40, borderRadius: "50%", background: WARM, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: RUST }}>R</span></div><div style={{ flex: 1 }}><p style={{ fontSize: 14, fontWeight: 500, color: DARK }}>Ronny's {loc.name}</p><p style={{ fontSize: 13, color: MID }}>{loc.address}</p></div><span style={{ fontSize: 13, color: GN, fontWeight: 500 }}>~30 min</span></button>)}</div>}
+        
+        <div style={{ marginTop: 40, textAlign: "center" }}><p style={{ fontSize: 13, color: MID }}>Tbilisi's first American pizza since 2009</p><p style={{ fontSize: 13, color: MID, marginTop: 4 }}>032 2 472 472 · Open 11:00–23:00</p></div>
       </div>
     </div>
   );
@@ -735,15 +814,16 @@ export default function App() {
           </div>
           <button onClick={reorder} style={{ padding: "10px 18px", borderRadius: 20, border: "none", background: RUST, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>Reorder</button>
         </div>}
-        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 500, color: DARK, marginBottom: 4 }}>Our pizzas</p>
+        <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 500, color: DARK, marginBottom: 4 }}>Our pizzas</p>
         <p style={{ fontSize: 13, color: MID, marginBottom: 14 }}>Tap to customize · made fresh at Ronny's {loc?.name}</p>
-        {/* Half & Half */}
-        <div onClick={() => { setHalfBuilder(true); setEditIdx(null); }} style={{ background: RL, border: `1.5px solid ${RUST}`, borderRadius: 14, padding: "14px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
-          <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#fff", border: `2px dashed ${RUST}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>½</div>
-          <div><p style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 500, color: RUST }}>Build a Half & Half</p><p style={{ fontSize: 12, color: MID }}>Pick any 2 pizzas, customize each side</p></div>
-        </div>
         {/* Pizza grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>{pizzas.map((p) => <PizzaCard key={p.id} pizza={p} onClick={() => { setBuilderPizza(p); setEditIdx(null); }} />)}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>{pizzas.map((p) => <PizzaCard key={p.id} pizza={p} onClick={() => { setBuilderPizza(p); setEditIdx(null); }} />)}</div>
+        {/* Half & Half — below pizza grid */}
+        <div onClick={() => { setHalfBuilder(true); setEditIdx(null); }} style={{ background: "#fff", border: `1.5px solid ${BORDER}`, borderRadius: 16, padding: "16px 18px", marginTop: 12, display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: WARM, border: `2px dashed ${RUST}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 22, color: RUST }}>½</div>
+          <div style={{ flex: 1 }}><p style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 500, color: DARK }}>Build a Half & Half</p><p style={{ fontSize: 13, color: MID, marginTop: 2 }}>Two pizzas in one — pick any 2, customize each side</p></div>
+          <span style={{ fontSize: 18, color: MID }}>→</span>
+        </div>
 
         {/* Extras: Sticks, then Dessert, Sauces, Drinks */}
         <div style={{ marginTop: 28 }}>
@@ -760,8 +840,8 @@ export default function App() {
               <p style={{ fontSize: 14, color: RUST, fontWeight: 600 }}>From {sticksProduct.basePrice.toFixed(2)} ₾</p>
             </div>
           </div>
-          <div onClick={() => addSimple({ name: "Sweet Cinnamon Sticks", price: 4.2, desc: "Sprinkled with cinnamon and sugar, fresh and golden brown" }, "🍯")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, border: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer" }}>
-            <div style={{ flex: 1 }}><p style={{ fontSize: 15, fontWeight: 500, color: DARK }}>Sweet Cinnamon Sticks</p><p style={{ fontSize: 13, color: MID }}>Crusty outside, soft inside. Fresh, hot, golden brown.</p></div>
+          <div onClick={() => { addSimple({ name: "Sweet Cinnamon Sticks", price: 4.2, desc: "" }, "🍯"); setToast("Sweet Cinnamon Sticks added — don't forget the Icing!"); setTimeout(() => setToast(null), 3000); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${BORDER}`, background: "#fff", cursor: "pointer" }}>
+            <div style={{ flex: 1 }}><p style={{ fontSize: 15, fontWeight: 500, color: DARK }}>Sweet Cinnamon Sticks</p><p style={{ fontSize: 13, color: MID }}>Fresh, hot, golden brown. <span style={{ color: RUST, fontWeight: 500 }}>Try with Icing →</span></p></div>
             <span style={{ fontSize: 15, color: RUST, fontWeight: 600, whiteSpace: "nowrap" }}>4.20 ₾</span>
             <div style={{ width: 28, height: 28, borderRadius: "50%", border: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: RUST, flexShrink: 0 }}>+</div>
           </div>
@@ -799,3 +879,4 @@ export default function App() {
     </div>
   );
 }
+
